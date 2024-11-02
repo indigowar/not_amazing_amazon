@@ -51,8 +51,7 @@ func Run(cfg *config.Config) {
 
 	mux := http.NewServeMux()
 
-	mux.Handle("GET /health", health.HealthEndpoint(healthSvc))
-	mux.Handle("GET /health/detailed", health.HealthDetailEndpoint(healthSvc))
+	health.SetupHandlers(mux, healthSvc)
 
 	server := &http.Server{
 		Addr:    ":8000",
@@ -61,7 +60,7 @@ func Run(cfg *config.Config) {
 
 	go func() {
 		logger.Info("Starting the server")
-		if err := server.ListenAndServe(); err != nil {
+		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			logger.Error("Server.ListenAndServe failed", "err", err)
 			os.Exit(1)
 		}

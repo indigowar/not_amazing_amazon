@@ -31,3 +31,8 @@ func HealthDetailEndpoint(svc *Service) http.HandlerFunc {
 		rest.JSON(w, http.StatusOK, health)
 	}
 }
+
+func SetupHandlers(mux *http.ServeMux, svc *Service) {
+	mux.Handle("GET /health", HealthEndpoint(svc))
+	mux.Handle("GET /health/detailed", HealthDetailEndpoint(svc))
+}

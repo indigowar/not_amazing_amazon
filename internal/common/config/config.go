@@ -36,7 +36,7 @@ type Minio struct {
 }
 
 func Load() (*Config, error) {
-	viper.SetConfigName("config")
+	viper.SetConfigName(".config")
 	viper.SetConfigType("yaml")
 	viper.AddConfigPath(".")
 	viper.AddConfigPath("/etc/appname")
@@ -44,7 +44,7 @@ func Load() (*Config, error) {
 	viper.AutomaticEnv()
 	viper.SetEnvPrefix("APP")
 
-	viper.SetDefault("LogFile", "app.log")
+	viper.SetDefault("LogFile", "")
 	viper.SetDefault("Postgres.Port", 5432)
 	viper.SetDefault("Redis.Port", 6379)
 	viper.SetDefault("Minio.Port", 9000)
