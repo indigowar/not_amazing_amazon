@@ -1,0 +1,20 @@
+LogFile: "app.log"
+
+Postgres:
+  Host: "localhost"
+  Port: 5432
+  User: "myuser"
+  Password: "mypassword"
+  Database: "mydatabase"
+
+Redis:
+  Host: "localhost"
+  Port: 6379
+  Db: 0
+  Password: "myredispassword"
+
+Minio:
+  Host: "localhost"
+  Port: 9000
+  RootUser: "minioadmin"
+  RootPassword: "minioadminpassword"
