@@ -1,3 +1,5 @@
+SecretKey: "strong and complicated security key"
+
 Postgres:
   Host: "localhost"
   Port: 5432

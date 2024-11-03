@@ -7,10 +7,11 @@ import (
 )
 
 type Config struct {
-	LogFile  string
-	Postgres Postgres
-	Redis    Redis
-	Minio    Minio
+	SecretKey string
+	LogFile   string
+	Postgres  Postgres
+	Redis     Redis
+	Minio     Minio
 }
 
 type Postgres struct {
