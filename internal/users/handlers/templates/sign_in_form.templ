@@ -1,0 +1,48 @@
+package templates
+
+import "github.com/indigowar/not_amazing_amazon/internal/common/templates"
+
+templ SignIn(
+	handlerPath string,
+) {
+	@templates.Page(templates.Head("Hello, world")) {
+		<main class="container">
+			<h1>Sign In</h1>
+			<form
+				method="POST"
+				action={ templ.SafeURL(handlerPath) }
+				hx-target="#response"
+				hx-swap="innerHTML"
+			>
+				<div>
+					<label for="display_name">Displayed Name:</label>
+					<input
+						type="text"
+						id="display_name"
+						name="display_name"
+						minlength="6"
+						required
+						placeholder="Enter displayed name"
+					/>
+				</div>
+				<div>
+					<label for="phone_number">Phone Number:</label>
+					<input type="tel" id="phone_number" name="phone_number" required/>
+				</div>
+				<div>
+					<label for="password">Password:</label>
+					<input
+						type="password"
+						id="password"
+						name="password"
+						minlength="6"
+						required
+						placeholder="Enter password"
+					/>
+				</div>
+				<button type="submit">Submit</button>
+			</form>
+			<div id="response" class="alert"></div>
+		</main>
+	}
+}

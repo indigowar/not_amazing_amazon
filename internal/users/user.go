@@ -7,13 +7,9 @@ import (
 )
 
 type User struct {
-	ID uuid.UUID
-
-	Passport string
-	Password string
-
-	DisplayedName string
-	PhoneNumber   string
-
+	ID               uuid.UUID
+	PhoneNumber      string
+	Password         string
+	DisplayedName    string
 	RegistrationDate time.Time
 }

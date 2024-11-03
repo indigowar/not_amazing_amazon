@@ -3,7 +3,7 @@ package health
 import (
 	"net/http"
 
-	"github.com/indigowar/not_amazing_amazon/internal/common/rest"
+	"github.com/indigowar/not_amazing_amazon/internal/common/web"
 )
 
 func HealthEndpoint(svc *Service) http.HandlerFunc {
@@ -11,11 +11,11 @@ func HealthEndpoint(svc *Service) http.HandlerFunc {
 		health := svc.Health(r.Context())
 
 		if health.Status != "ok" {
-			rest.JSON(w, http.StatusServiceUnavailable, health)
+			web.JSON(w, http.StatusServiceUnavailable, health)
 			return
 		}
 
-		rest.JSON(w, http.StatusOK, health)
+		web.JSON(w, http.StatusOK, health)
 	}
 }
 
@@ -24,11 +24,11 @@ func HealthDetailEndpoint(svc *Service) http.HandlerFunc {
 		health := svc.HealthDetailed(r.Context())
 
 		if health.Status != "ok" {
-			rest.JSON(w, http.StatusServiceUnavailable, health)
+			web.JSON(w, http.StatusServiceUnavailable, health)
 			return
 		}
 
-		rest.JSON(w, http.StatusOK, health)
+		web.JSON(w, http.StatusOK, health)
 	}
 }
 

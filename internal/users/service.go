@@ -3,6 +3,8 @@ package users
 import (
 	"context"
 	"log/slog"
+	"math/rand"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -10,57 +12,77 @@ import (
 )
 
 type Service struct {
-	logger      *slog.Logger
-	storage     UserStorage
-	securityKey []byte
+	logger         *slog.Logger
+	userStorage    UserStorage
+	sessionStorage SessionStorage
+	securityKey    []byte
 }
 
 func (svc *Service) SignIn(
 	ctx context.Context,
-	passport string,
+	phoneNumber string,
 	password string,
 	displayedName string,
-	phoneNumber string,
-) (uuid.UUID, error) {
-	hashedPassport, err := bcrypt.GenerateFromPassword([]byte(passport), bcrypt.DefaultCost)
-	if err != nil {
-		return uuid.UUID{}, err
-	}
-
+) (string, error) {
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
-		return uuid.UUID{}, err
-	}
-
-	hashedPhoneNumber, err := bcrypt.GenerateFromPassword([]byte(phoneNumber), bcrypt.DefaultCost)
-	if err != nil {
-		return uuid.UUID{}, err
+		return "", err
 	}
 
 	user := User{
 		ID:               uuid.New(),
-		Passport:         string(hashedPassport),
+		PhoneNumber:      phoneNumber,
 		Password:         string(hashedPassword),
 		DisplayedName:    displayedName,
-		PhoneNumber:      string(hashedPhoneNumber),
 		RegistrationDate: time.Now(),
 	}
 
-	if err := svc.storage.Insert(ctx, user); err != nil {
-		return uuid.UUID{}, err
+	if err := svc.userStorage.Insert(ctx, user); err != nil {
+		return "", err
 	}
 
-	return user.ID, nil
+	session := Session{
+		User:      user.ID,
+		Token:     generateToken(),
+		ExpiresAt: time.Now().Add(24 * time.Hour),
+	}
+
+	if err := svc.sessionStorage.Insert(ctx, session); err != nil {
+		return "", err
+	}
+
+	return session.Token, nil
+}
+
+func (svc *Service) Login(ctx context.Context, phone string, password string) (string, error) {
+	panic("unimplemented")
 }
 
 func NewUserService(
 	logger *slog.Logger,
-	storage UserStorage,
+	userStorage UserStorage,
+	sessionStorage SessionStorage,
 	securityKey []byte,
 ) *Service {
 	return &Service{
-		logger:      logger,
-		storage:     storage,
-		securityKey: securityKey,
+		logger:         logger,
+		userStorage:    userStorage,
+		sessionStorage: sessionStorage,
+		securityKey:    securityKey,
 	}
+}
+
+func generateToken() string {
+	rand := rand.New(rand.NewSource(time.Now().UnixNano()))
+	alphabet := "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+
+	l := len(alphabet)
+
+	var sb strings.Builder
+	for i := 0; i < 64; i++ {
+		c := alphabet[rand.Intn(l)]
+		sb.WriteByte(c)
+	}
+
+	return sb.String()
 }
