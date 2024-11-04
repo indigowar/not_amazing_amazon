@@ -16,17 +16,13 @@ func ShowSigninPage(handlerPath string) http.HandlerFunc {
 
 func HandleSignin(logger *slog.Logger) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		passport := r.FormValue("passport")
-		password := r.FormValue("passport")
-		email := r.FormValue("email")
-		phoneNumber := r.FormValue("phone_number")
 		displayedName := r.FormValue("display_name")
+		phoneNumber := r.FormValue("phone_number")
+		password := r.FormValue("password")
 
 		logger.Info(
 			"received sign in handle",
-			"passport", passport,
 			"password", password,
-			"email", email,
 			"phoneNumber", phoneNumber,
 			"displayedName", displayedName,
 		)

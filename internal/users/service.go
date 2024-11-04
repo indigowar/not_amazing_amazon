@@ -55,7 +55,34 @@ func (svc *Service) SignIn(
 }
 
 func (svc *Service) Login(ctx context.Context, phone string, password string) (string, error) {
-	panic("unimplemented")
+	user, err := svc.userStorage.GetByPhoneNumber(ctx, phone)
+	if err != nil {
+		return "", err
+	}
+
+	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password)); err != nil {
+		return "", err
+	}
+
+	session := Session{
+		User:      user.ID,
+		Token:     generateToken(),
+		ExpiresAt: time.Now().Add(24 * time.Hour),
+	}
+
+	if err := svc.sessionStorage.Insert(ctx, session); err != nil {
+		return "", err
+	}
+
+	return session.Token, nil
+}
+
+func (svc *Service) Logout(ctx context.Context, token string) error {
+	err := svc.sessionStorage.Delete(ctx, token)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func NewUserService(
