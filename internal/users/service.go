@@ -12,10 +12,9 @@ import (
 )
 
 type Service struct {
-	logger         *slog.Logger
-	userStorage    UserStorage
-	sessionStorage SessionStorage
-	securityKey    []byte
+	logger      *slog.Logger
+	userStorage UserStorage
+	securityKey []byte
 }
 
 func (svc *Service) SignIn(
@@ -23,10 +22,10 @@ func (svc *Service) SignIn(
 	phoneNumber string,
 	password string,
 	displayedName string,
-) (string, error) {
+) (uuid.UUID, error) {
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
-		return "", err
+		return uuid.UUID{}, err
 	}
 
 	user := User{
@@ -38,64 +37,34 @@ func (svc *Service) SignIn(
 	}
 
 	if err := svc.userStorage.Insert(ctx, user); err != nil {
-		return "", err
+		return uuid.UUID{}, err
 	}
 
-	session := Session{
-		User:      user.ID,
-		Token:     generateToken(),
-		ExpiresAt: time.Now().Add(24 * time.Hour),
-	}
-
-	if err := svc.sessionStorage.Insert(ctx, session); err != nil {
-		return "", err
-	}
-
-	return session.Token, nil
+	return user.ID, nil
 }
 
-func (svc *Service) Login(ctx context.Context, phone string, password string) (string, error) {
+func (svc *Service) CheckCredentials(ctx context.Context, phone string, password string) (uuid.UUID, error) {
 	user, err := svc.userStorage.GetByPhoneNumber(ctx, phone)
 	if err != nil {
-		return "", err
+		return uuid.UUID{}, err
 	}
 
 	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password)); err != nil {
-		return "", err
+		return uuid.UUID{}, err
 	}
 
-	session := Session{
-		User:      user.ID,
-		Token:     generateToken(),
-		ExpiresAt: time.Now().Add(24 * time.Hour),
-	}
-
-	if err := svc.sessionStorage.Insert(ctx, session); err != nil {
-		return "", err
-	}
-
-	return session.Token, nil
-}
-
-func (svc *Service) Logout(ctx context.Context, token string) error {
-	err := svc.sessionStorage.Delete(ctx, token)
-	if err != nil {
-		return err
-	}
-	return nil
+	return user.ID, nil
 }
 
 func NewUserService(
 	logger *slog.Logger,
 	userStorage UserStorage,
-	sessionStorage SessionStorage,
 	securityKey []byte,
 ) *Service {
 	return &Service{
-		logger:         logger,
-		userStorage:    userStorage,
-		sessionStorage: sessionStorage,
-		securityKey:    securityKey,
+		logger:      logger,
+		userStorage: userStorage,
+		securityKey: securityKey,
 	}
 }
 

@@ -7,11 +7,11 @@ import (
 	"os/signal"
 	"time"
 
+	"github.com/alexedwards/scs/v2"
 	"github.com/indigowar/not_amazing_amazon/internal/common/config"
 	"github.com/indigowar/not_amazing_amazon/internal/health"
 	"github.com/indigowar/not_amazing_amazon/internal/users"
 	userspostgres "github.com/indigowar/not_amazing_amazon/internal/users/repository/postgres"
-	usersredis "github.com/indigowar/not_amazing_amazon/internal/users/repository/redis"
 )
 
 func Run(cfg *config.Config) {
@@ -24,14 +24,21 @@ func Run(cfg *config.Config) {
 	usersSvc := users.NewUserService(
 		logger,
 		userspostgres.NewUserStorage(postgres),
-		usersredis.NewSessionStorage(redis),
 		[]byte(cfg.SecretKey),
 	)
 
+	sessionManager := scs.New()
+	sessionManager.Lifetime = 24 * time.Hour
+
 	mux := http.NewServeMux()
 
-	health.SetupHandlers(mux, healthSvc)
-	users.Setup(mux, users.SetupConfig{Service: usersSvc})
+	setupHandlers(
+		mux,
+		sessionManager,
+
+		healthSvc,
+		usersSvc,
+	)
 
 	server := &http.Server{
 		Addr:    ":8000",
